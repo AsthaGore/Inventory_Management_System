@@ -1,0 +1,310 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Page</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .bubble {
+            position: absolute;
+            bottom: -150px;
+            width: 40px;
+            height: 40px;
+            background: rgba(91, 192, 222, 0.3);
+            border-radius: 50%;
+            animation: rise 15s infinite ease-in;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bubble:nth-child(odd) {
+            background: rgba(253, 187, 45, 0.3);
+        }
+
+        @keyframes rise {
+            0% {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateX(-50px) translateY(-100vh) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .item-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .item-section select,
+        .item-section input {
+            padding: 5px;
+            margin-right: 10px;
+        }
+        .add-item {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .added-items {
+            margin-top: 20px;
+        }
+        .added-items table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .added-items th,
+        .added-items td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .delete-btn {
+            color: red;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Student Dashboard</h1>
+    <p>Welcome, <!-- Insert dynamic emailId here --></p>
+
+    <div class="item-section">
+        <div>
+            <label for="name">Select Item:</label>
+            <select id="name" name="name">
+                <!-- Dynamically populate options using JavaScript -->
+            </select>
+        </div>
+
+        <div>
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" min="1" value="1" />
+        </div>
+
+        <div>
+            <label for="total-price">Total Price:</label>
+            <input type="text" id="total-price" disabled />
+        </div>
+    </div>
+
+    <div class="add-item">
+        <button id="add-btn">Add Item</button>
+    </div>
+
+    <div class="added-items">
+        <h3>Added Items</h3>
+        <table id="item-list">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Total Price</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="item-list-body">
+                <!-- Dynamically populate added items here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Bubble animation
+        for (let i = 0; i < 30; i++) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            bubble.style.left = `${Math.random() * 100}%`;
+            bubble.style.animationDuration = `${10 + Math.random() * 5}s`;
+            bubble.style.width = `${20 + Math.random() * 60}px`;
+            bubble.style.height = bubble.style.width;
+            document.body.appendChild(bubble);
+        }
+
+        // Fetch items and populate dropdown
+        fetch('/student/items')
+            .then((response) => response.json())
+            .then((items) => {
+                const itemSelect = document.getElementById('name');
+                items.forEach((item) => {
+                    const option = document.createElement('option');
+                    option.value = item.id;  // now using 'name' as value
+                    option.textContent = item.name;
+                    option.setAttribute('data-price', item.price);
+                    itemSelect.appendChild(option);
+                });
+                updatePrice(); // Initialize price
+            })
+            .catch((err) => console.error('Error fetching items:', err));
+
+        // Update price when item or quantity changes
+        document.getElementById('name').addEventListener('change', updatePrice);
+        document.getElementById('quantity').addEventListener('input', updatePrice);
+
+        function updatePrice() {
+            const itemSelect = document.getElementById('name');
+            const quantity = document.getElementById('quantity').value;
+            const price = itemSelect.options[itemSelect.selectedIndex]?.getAttribute('data-price') || 0;
+            const totalPrice = price * quantity;
+            document.getElementById('total-price').value = totalPrice ? totalPrice.toFixed(2) : '';
+        }
+
+        // Handle button click to add item to the table
+        // document.getElementById('add-btn').addEventListener('click', () => {
+        //     const itemSelect = document.getElementById('name');
+        //     const quantity = document.getElementById('quantity').value;
+        //     const totalPrice = document.getElementById('total-price').value;
+
+        //     if (!itemSelect.value || quantity <= 0 || !totalPrice) {
+        //         alert('Please select an item and enter a valid quantity.');
+        //         return;
+        //     }
+
+        //     const itemName = itemSelect.value;
+
+        //     // Create new row
+        //     const tableBody = document.getElementById('item-list-body');
+        //     const row = document.createElement('tr');
+
+        //     row.innerHTML = `
+        //         <td>${itemName}</td>
+        //         <td>${quantity}</td>
+        //         <td>${totalPrice}</td>
+        //         <td><span class="delete-btn">Delete</span></td>
+        //     `;
+
+        //     // Add delete functionality
+        //     row.querySelector('.delete-btn').addEventListener('click', function () {
+        //         tableBody.removeChild(row);
+        //     });
+
+        //     tableBody.appendChild(row);
+
+        //     // Optionally reset quantity & total price
+        //     document.getElementById('quantity').value = 1;
+        //     document.getElementById('total-price').value = '';
+        // });
+
+        document.getElementById('add-btn').addEventListener('click', () => {
+    const itemSelect = document.getElementById('name');
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const totalPrice = parseFloat(document.getElementById('total-price').value);
+
+    if (!itemSelect.value || quantity <= 0 || isNaN(totalPrice)) {
+        alert('Please select an item and enter a valid quantity and price.');
+        return;
+    }
+
+    const itemName = itemSelect.options[itemSelect.selectedIndex].text;
+
+    // Create new row in the table
+    const tableBody = document.getElementById('item-list-body');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${itemName}</td>
+        <td>${quantity}</td>
+        <td>${totalPrice.toFixed(2)}</td>
+        <td><span class="delete-btn" style="cursor:pointer; color:red;">Delete</span></td>
+    `;
+
+    // Add delete functionality
+    row.querySelector('.delete-btn').addEventListener('click', function () {
+        tableBody.removeChild(row);
+    });
+
+    tableBody.appendChild(row);
+
+    // Reset input fields
+    document.getElementById('quantity').value = 1;
+    document.getElementById('total-price').value = '';
+
+    // Prepare data to send
+    const studentId = 1; // Replace with real logged-in student ID in production
+
+    
+    const itemId = parseInt(itemSelect.value);
+
+    const purchaseData = {
+        student_id: studentId,
+        item_id: itemId,
+        quantity: quantity,
+        total_price: totalPrice,
+        status: 'unpaid',
+        purchase_date: new Date().toISOString().slice(0, 19).replace('T', ' ')
+
+    };
+
+    fetch('/add-purchase', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(purchaseData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Purchase added successfully!');
+        } else {
+            console.error('Error adding purchase:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+    });
+});
+
+fetch('/student/purchases')
+    .then(res => res.json())
+    .then(result => {
+        if (result.success) {
+            const tableBody = document.getElementById('item-list-body');
+            result.data.forEach(purchase => {
+    const row = document.createElement('tr');
+    row.setAttribute('data-id', purchase.id); // Save purchase ID
+    row.setAttribute('data-id', purchase.id);
+
+    row.innerHTML = `
+        <td>${purchase.item_name}</td>
+        <td>${purchase.quantity}</td>
+        <td>${purchase.total_price.toFixed(2)}</td>
+        <td><span class="delete-btn" style="cursor:pointer; color:red;" data-id="${purchase.id}">Delete</span></td>
+    `;
+
+    row.querySelector('.delete-btn').addEventListener('click', function () {
+        const purchaseId = this.getAttribute('data-id');
+
+        fetch(`/delete-purchase/${purchaseId}`, {
+            method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(response => {
+            if (response.success) {
+                row.remove(); // Remove from UI
+            } else {
+                alert('Failed to delete purchase: ' + response.error);
+            }
+        })
+        .catch(err => console.error('Error deleting purchase:', err));
+    });
+
+    tableBody.appendChild(row);
+});
+
+        } else {
+            console.error('Failed to load purchases:', result.error);
+        }
+    })
+    .catch(err => {
+        console.error('Fetch error:', err);
+    });
+
+    </script>
+</body>
+</html>
+

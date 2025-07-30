@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Inventory</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+    </div>
+
+    <div class="login-form">
+        <h2>Login</h2>
+        <form action="/do-login" method="GET">
+            <input type="text" name="emailId" placeholder="Email Id" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <p class="register-msg">Login only if you're registered. <a href="/register">Register here</a></p>
+    </div>
+
+    <!-- Interactive Bubbles Animation -->
+    <script>
+        for (let i = 0; i < 30; i++) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            bubble.style.left = `${Math.random() * 100}%`;
+            bubble.style.animationDuration = `${10 + Math.random() * 10}s`;
+            bubble.style.width = `${20 + Math.random() * 60}px`;
+            bubble.style.height = bubble.style.width;
+            document.body.appendChild(bubble);
+        }
+    </script>
+</body>
+</html>
